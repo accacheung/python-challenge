@@ -2,34 +2,59 @@ import os
 import csv
 
 # Path to collect data from the Resources folder
-budget_dataCSV = os.path.join("../Resources", 'budget_data.csv')
-
-# Define the function and have it accept the 'budgetdata' as its sole parameter
-def analysis(budgetdata):
-
-# Find the total number of months included in the dataset
-    totalmonths = len(budgetdata[0])
-
-# Find the total net amount of "Profit/Losses"
-    totalpl = int(budgetdata[1])
-    
-# Find the average change in "Porfit/Losses"
-    
-
-# Find the greatest increase in profits
-    
-
-# Find the greatest decrease in losses
+budgetCSV = os.path.join('Resources', 'budget_data.csv')
+# Path to create new text file for results
+PyBankResults = os.path.join('PyBankResults.txt')
 
 
-# Print out results
-    print(f"Total number of months: {str(totalmonths)}")
-    print(f"Net Amount: {str(totalpl)}")
-   
+# Define and set variables
+Totalmonths = 0
+PreviousPL = 0
+ChangeinRevenue = []
+GreatestIncrease = ["", 0]
+GreatestDecrease = ["", 99999999]
+TotalPL = 0
 
-# Read in the CSV file
-with open(budget_dataCSV, 'r') as csvfile:
+# Read in CSV file
+with open(budgetCSV, 'r') as csvfile:
+    csvfile = csv.DictReader(csvfile)
 
-    # Split the data on commas
-    csvreader = csv.reader(csvfile, delimiter=',')
+    for row in csvfile:
 
+        # Track the total
+        Totalmonths = Totalmonths + 1
+        TotalPL = TotalPL + int(row["Revenue"])
+
+        # Track the revenue change
+        ChangeperYear = int(row["Revenue"]) - PreviousPL
+        PreviousPL  = int(row["Revenue"])
+        ChangeinRevenue = ChangeinRevenue + [ChangeperYear]
+        
+        # Calculate the greatest increase
+        if (ChangeperYear > GreatestIncrease[1]):
+            GreatestIncrease[0] = row["Date"]
+            GreatestIncrease[1] = ChangeperYear
+
+        # Calculate the greatest decrease
+        if (ChangeperYear < GreatestDecrease[1]):
+            GreatestDecrease[0] = row["Date"]
+            GreatestDecrease[1] = ChangeperYear
+
+# Calculate the Average Revenue Change
+    for Averagechange in range(len(ChangeinRevenue)):
+        Averagechange = sum(ChangeinRevenue) / len(ChangeinRevenue)
+
+output = (
+    f"\nFinancial Analysis\n"
+    f"----------------------------\n"
+    f"Total Months: {Totalmonths}\n"
+    f"Total: ${TotalPL}\n"
+    f"Average Change: ${Averagechange}\n"
+    f"Greatest Increase in Profits: {GreatestIncrease[0]} (${GreatestIncrease[1]})\n"
+    f"Greatest Decrease in Profits: {GreatestDecrease[0]} (${GreatestDecrease[1]})\n")
+
+print(output)
+
+# Export text file
+with open(PyBankResults, "w") as txt_file:
+    txt_file.write(output)
